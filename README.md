@@ -52,3 +52,58 @@ Help:
 ```bash
 ./install-release.sh --help
 ```
+
+## Caddy
+
+This fork also provides a one-click Caddy installer:
+
+```bash
+sudo ./install-caddy.sh install
+sudo ./install-caddy.sh uninstall
+```
+
+Behavior:
+
+- Runs as dedicated `caddy:caddy`
+- Uses JSON config at `/usr/local/etc/caddy/config.json`
+- Starts with `caddy run --config /usr/local/etc/caddy/config.json --adapter json`
+- Uses hardened systemd sandbox settings and only keeps `CAP_NET_BIND_SERVICE`
+- Stores runtime data in `/var/lib/caddy`
+
+Binary source order:
+
+1. `CADDY_BINARY_URL`
+2. This repository release asset, such as `caddy-linux-amd64.tar.gz`
+3. `https://github.com/lxhao61/integrated-examples` latest release
+
+## Build Caddy With GitHub Actions
+
+Yes. Caddy can be built automatically with GitHub Actions in:
+
+`/.github/workflows/build-caddy.yml`
+
+Behavior:
+
+- `workflow_dispatch`: build artifacts for manual runs, defaulting to the latest Caddy release tag
+- `push tag v*`: build and upload release assets like `caddy-linux-amd64.tar.gz`
+
+Included plugins:
+
+- `github.com/caddyserver/forwardproxy`
+- `github.com/imgk/caddy-trojan`
+- `github.com/mholt/caddy-webdav`
+- `github.com/WeidiDeng/caddy-cloudflare-ip`
+- `github.com/xcaddyplugins/caddy-trusted-cloudfront`
+- `github.com/caddy-dns/cloudflare`
+- `github.com/caddy-dns/duckdns`
+- `github.com/caddy-dns/tencentcloud`
+- `github.com/mholt/caddy-events-exec`
+- `github.com/mholt/caddy-l4`
+- `github.com/caddyserver/jsonc-adapter`
+
+Example:
+
+```bash
+git tag v2.11.2
+git push origin v2.11.2
+```

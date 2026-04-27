@@ -52,3 +52,58 @@ sudo ./install-release.sh uninstall
 ```bash
 ./install-release.sh --help
 ```
+
+## Caddy
+
+这个 fork 还提供了一个 Caddy 一键部署脚本：
+
+```bash
+sudo ./install-caddy.sh install
+sudo ./install-caddy.sh uninstall
+```
+
+行为说明：
+
+- 使用独立的 `caddy:caddy` 用户运行
+- 使用 JSON 配置文件 `/usr/local/etc/caddy/config.json`
+- 启动命令为 `caddy run --config /usr/local/etc/caddy/config.json --adapter json`
+- systemd 服务做了更严格的沙箱限制，仅保留 `CAP_NET_BIND_SERVICE`
+- 运行时状态目录为 `/var/lib/caddy`
+
+二进制下载顺序：
+
+1. 环境变量 `CADDY_BINARY_URL`
+2. 当前仓库 release 里的二进制资产，例如 `caddy-linux-amd64.tar.gz`
+3. `https://github.com/lxhao61/integrated-examples` 最新 release
+
+## GitHub Actions 自动编译 Caddy
+
+可以，已经补了工作流：
+
+`/.github/workflows/build-caddy.yml`
+
+行为说明：
+
+- `workflow_dispatch`：手动触发构建，默认使用 Caddy 最新 release tag
+- `push tag v*`：自动构建并上传 release 资产，例如 `caddy-linux-amd64.tar.gz`
+
+内置插件：
+
+- `github.com/caddyserver/forwardproxy`
+- `github.com/imgk/caddy-trojan`
+- `github.com/mholt/caddy-webdav`
+- `github.com/WeidiDeng/caddy-cloudflare-ip`
+- `github.com/xcaddyplugins/caddy-trusted-cloudfront`
+- `github.com/caddy-dns/cloudflare`
+- `github.com/caddy-dns/duckdns`
+- `github.com/caddy-dns/tencentcloud`
+- `github.com/mholt/caddy-events-exec`
+- `github.com/mholt/caddy-l4`
+- `github.com/caddyserver/jsonc-adapter`
+
+示例：
+
+```bash
+git tag v2.11.2
+git push origin v2.11.2
+```

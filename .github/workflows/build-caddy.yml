@@ -1,0 +1,104 @@
+name: Build Caddy
+
+on:
+  workflow_dispatch:
+    inputs:
+      caddy_version:
+        description: Caddy version tag, for example v2.11.2
+        required: false
+        default: ''
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+            asset_name: caddy-linux-amd64.tar.gz
+          - goos: linux
+            goarch: '386'
+            asset_name: caddy-linux-386.tar.gz
+          - goos: linux
+            goarch: arm64
+            asset_name: caddy-linux-arm64.tar.gz
+          - goos: linux
+            goarch: s390x
+            asset_name: caddy-linux-s390x.tar.gz
+          - goos: linux
+            goarch: arm
+            goarm: '5'
+            asset_name: caddy-linux-armv5.tar.gz
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve version
+        id: vars
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            tag="${{ github.event.inputs.caddy_version }}"
+            if [ -z "${tag}" ]; then
+              tag="$(curl -fsSL https://api.github.com/repos/caddyserver/caddy/releases/latest | sed -n 's/.*"tag_name": "\(v[^"]*\)".*/\1/p' | head -n1)"
+            fi
+            echo "caddy_version=${tag}" >> "$GITHUB_OUTPUT"
+            echo "release_tag=${tag}" >> "$GITHUB_OUTPUT"
+          else
+            tag="${GITHUB_REF_NAME}"
+            echo "caddy_version=${tag}" >> "$GITHUB_OUTPUT"
+            echo "release_tag=${tag}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Install xcaddy
+        run: go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
+      - name: Build Caddy
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          GOARM: ${{ matrix.goarm }}
+          CADDY_VERSION: ${{ steps.vars.outputs.caddy_version }}
+        run: |
+          mkdir -p dist
+          "$(go env GOPATH)/bin/xcaddy" build "${CADDY_VERSION}" \
+            --with github.com/caddyserver/forwardproxy \
+            --with github.com/imgk/caddy-trojan \
+            --with github.com/mholt/caddy-webdav \
+            --with github.com/WeidiDeng/caddy-cloudflare-ip \
+            --with github.com/xcaddyplugins/caddy-trusted-cloudfront \
+            --with github.com/caddy-dns/cloudflare \
+            --with github.com/caddy-dns/duckdns \
+            --with github.com/caddy-dns/tencentcloud \
+            --with github.com/mholt/caddy-events-exec \
+            --with github.com/mholt/caddy-l4 \
+            --with github.com/caddyserver/jsonc-adapter \
+            --output dist/caddy
+          chmod 0755 dist/caddy
+          tar -C dist -czf "dist/${{ matrix.asset_name }}" caddy
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset_name }}
+          path: dist/${{ matrix.asset_name }}
+
+      - name: Upload release asset
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.vars.outputs.release_tag }}
+          files: dist/${{ matrix.asset_name }}
