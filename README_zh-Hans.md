@@ -85,7 +85,13 @@ sudo ./install-caddy.sh uninstall
 行为说明：
 
 - `workflow_dispatch`：手动触发构建，默认使用 Caddy 最新 release tag
-- `push tag v*`：自动构建并上传 release 资产，例如 `caddy-linux-amd64.tar.gz`
+- `push tag v*`：自动构建并刷新固定的 `latest` Release 资产
+- 工作流只构建 Linux `amd64` 和 `arm64`
+
+产物位置：
+
+- 工作流会把二进制发布到仓库的 `latest` Release
+- 每次运行完成后，直接去 `Releases -> latest` 下载
 
 内置插件：
 

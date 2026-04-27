@@ -25,18 +25,8 @@ jobs:
             goarch: amd64
             asset_name: caddy-linux-amd64.tar.gz
           - goos: linux
-            goarch: '386'
-            asset_name: caddy-linux-386.tar.gz
-          - goos: linux
             goarch: arm64
             asset_name: caddy-linux-arm64.tar.gz
-          - goos: linux
-            goarch: s390x
-            asset_name: caddy-linux-s390x.tar.gz
-          - goos: linux
-            goarch: arm
-            goarm: '5'
-            asset_name: caddy-linux-armv5.tar.gz
 
     steps:
       - name: Checkout
@@ -96,9 +86,36 @@ jobs:
           name: ${{ matrix.asset_name }}
           path: dist/${{ matrix.asset_name }}
 
-      - name: Upload release asset
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+  release:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
         with:
-          tag_name: ${{ steps.vars.outputs.release_tag }}
-          files: dist/${{ matrix.asset_name }}
+          path: release-assets
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release-dist
+          find release-assets -type f -name 'caddy-*.tar.gz' -exec cp {} release-dist/ \;
+          ls -l release-dist
+
+      - name: Publish latest release
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifactErrorsFailBuild: true
+          artifacts: release-dist/*
+          body: |
+            Auto-built Caddy binaries with custom plugins.
+            Trigger: ${{ github.event_name }}
+            Source ref: ${{ github.ref_name }}
+          name: latest
+          omitBodyDuringUpdate: false
+          omitNameDuringUpdate: false
+          prerelease: false
+          removesArtifacts: true
+          replacesArtifacts: true
+          tag: latest
+          targetCommitish: ${{ github.sha }}

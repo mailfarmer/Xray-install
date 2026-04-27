@@ -85,7 +85,13 @@ Yes. Caddy can be built automatically with GitHub Actions in:
 Behavior:
 
 - `workflow_dispatch`: build artifacts for manual runs, defaulting to the latest Caddy release tag
-- `push tag v*`: build and upload release assets like `caddy-linux-amd64.tar.gz`
+- `push tag v*`: build and refresh the fixed `latest` release assets
+- The workflow only builds Linux `amd64` and `arm64`
+
+Release output:
+
+- The workflow publishes binaries to the repository release tag `latest`
+- After each run, download from `Releases -> latest`
 
 Included plugins:
 
