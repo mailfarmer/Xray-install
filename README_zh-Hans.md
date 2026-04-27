@@ -73,8 +73,9 @@ sudo ./install-caddy.sh uninstall
 二进制下载顺序：
 
 1. 环境变量 `CADDY_BINARY_URL`
-2. 当前仓库 release 里的二进制资产，例如 `caddy-linux-amd64.tar.gz`
-3. `https://github.com/lxhao61/integrated-examples` 最新 release
+2. 当前仓库 `latest` Release 里的二进制资产，例如 `caddy-linux-amd64.tar.gz`
+3. 由 `CADDY_VERSION` 指定的版本 release 资产
+4. `https://github.com/lxhao61/integrated-examples` 最新 release
 
 ## GitHub Actions 自动编译 Caddy
 

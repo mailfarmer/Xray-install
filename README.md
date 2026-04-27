@@ -73,8 +73,9 @@ Behavior:
 Binary source order:
 
 1. `CADDY_BINARY_URL`
-2. This repository release asset, such as `caddy-linux-amd64.tar.gz`
-3. `https://github.com/lxhao61/integrated-examples` latest release
+2. This repository `latest` release asset, such as `caddy-linux-amd64.tar.gz`
+3. The versioned release asset defined by `CADDY_VERSION`
+4. `https://github.com/lxhao61/integrated-examples` latest release
 
 ## Build Caddy With GitHub Actions
 

@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-CADDY_VERSION="${CADDY_VERSION:-v2.11.2}"
+CADDY_VERSION="${CADDY_VERSION:-}"
 CADDY_REPO="${CADDY_REPO:-mailfarmer/Xray-install}"
 CADDY_CONFIG_DIR="${CADDY_CONFIG_DIR:-/usr/local/etc/caddy}"
 CADDY_CONFIG_FILE="${CADDY_CONFIG_FILE:-${CADDY_CONFIG_DIR}/config.json}"
@@ -131,9 +131,12 @@ download_file() {
 download_caddy_archive() {
   local urls=(
     "${CADDY_BINARY_URL:-}"
-    "https://github.com/${CADDY_REPO}/releases/download/${CADDY_VERSION}/caddy-${ARCH_LABEL}.tar.gz"
-    "https://github.com/lxhao61/integrated-examples/releases/latest/download/caddy-${ARCH_LABEL}.tar.gz"
+    "https://github.com/${CADDY_REPO}/releases/download/latest/caddy-${ARCH_LABEL}.tar.gz"
   )
+  if [[ -n "${CADDY_VERSION}" ]]; then
+    urls+=("https://github.com/${CADDY_REPO}/releases/download/${CADDY_VERSION}/caddy-${ARCH_LABEL}.tar.gz")
+  fi
+  urls+=("https://github.com/lxhao61/integrated-examples/releases/latest/download/caddy-${ARCH_LABEL}.tar.gz")
   local url
   local archive="${TMP_DIR}/caddy.tar.gz"
 
@@ -315,11 +318,12 @@ show_help() {
   ./install-caddy.sh uninstall
 
 环境变量:
-  CADDY_VERSION     指定你自己仓库 release tag，默认 v2.11.2
+  CADDY_VERSION     指定你自己仓库 release tag，不设置时跳过版本号 release，直接优先取 latest
   CADDY_REPO        指定仓库，默认 mailfarmer/Xray-install
   CADDY_BINARY_URL  直接指定 caddy tar.gz 下载地址
 
 说明:
+  默认优先下载当前仓库 `latest` Release 中的二进制
   install      安装 Caddy，配置文件为 JSON，服务使用最小权限运行
   uninstall    卸载 Caddy、配置、状态目录以及 systemd 服务
 EOF
