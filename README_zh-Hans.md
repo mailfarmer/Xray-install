@@ -2,96 +2,53 @@
 
 [English](README.md) | 简体中文 | [繁體中文](README_zh-Hant.md)
 
-用于在支持 systemd 的操作系统（如 CentOS / Debian / OpenSUSE）中安装 Xray 的 Bash 脚本。
+这是一个面向 systemd Linux 系统的精简版 Xray 安装脚本。
 
-**对于 Alpine 及 Gentoo Linux 用户**，请参考 **[OpenRC 专用说明](alpinelinux/README_zh-Hans.md)** 以获取适用于 Alpine/Gentoo Linux 的安装脚本和指南。
+这个 fork 只保留两个动作：
 
----
+- `install`
+- `uninstall`
 
-#### [文件系统层次结构标准 (FHS)](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)
+脚本会默认使用独立的 `xray:xray` 系统用户运行 Xray，使用 `-confdir` 方式加载配置目录，并从 `Loyalsoldier/v2ray-rules-dat` 下载 `geoip.dat` 和 `geosite.dat`。
 
-```
-已安装文件：
-- /etc/systemd/system/xray.service
-- /etc/systemd/system/xray@.service
+## 安装后的路径
 
-- /usr/local/bin/xray
-- /usr/local/etc/xray/*.json
-
-- /usr/local/share/xray/geoip.dat
-- /usr/local/share/xray/geosite.dat
-
-- /var/log/xray/access.log
-- /var/log/xray/error.log
+```text
+/etc/systemd/system/xray.service
+/usr/local/bin/xray
+/usr/local/etc/xray/*.json
+/usr/local/share/xray/geoip.dat
+/usr/local/share/xray/geosite.dat
+/var/log/xray/access.log
+/var/log/xray/error.log
 ```
 
-注意：Xray 默认不会将日志记录到 `/var/log/xray/*.log`。请配置 `"log"` 来指定日志文件。
+## 行为说明
 
-## 基本用法
+- 服务进程用户为 `xray:xray`
+- 服务启动命令为 `xray run -confdir /usr/local/etc/xray`
+- 如果 `/usr/local/etc/xray` 目录下没有任何 `.json` 配置文件，安装脚本会自动创建 `00-default.json`
+- `geoip.dat` 和 `geosite.dat` 下载源为：
+  - `https://github.com/Loyalsoldier/v2ray-rules-dat`
+- geodata 下载后会校验上游提供的 `.sha256sum`
+- 配置文件和日志文件权限已收紧
 
-**安装并升级 Xray-core 和地理数据，默认使用 `User=nobody`，但不会覆盖已有服务文件中的 `User` 设置**
+## 用法
 
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
-```
+安装：
 
-**仅更新 geoip.dat 和 geosite.dat**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata
-```
-
-**移除 Xray，但保留 json 配置文件和日志**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove
+```bash
+sudo ./install-release.sh install
 ```
 
-## 高级用法
+卸载：
 
-**安装并升级 Xray-core 到预发布版本**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --beta
+```bash
+sudo ./install-release.sh uninstall
 ```
 
-**安装并升级 Xray-core 和地理数据，并启用 `logrotate`，`$time` 可以是 12:34:56 格式的时间**
+查看帮助：
 
+```bash
+./install-release.sh --help
 ```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --logrotate $time
-```
-
-```
-已安装文件：
-- /etc/systemd/system/logrotate@.service
-- /etc/systemd/system/logrotate@.timer
-- /etc/logrotate.d/xray
-```
-
-**安装并升级 Xray-core 和地理数据，使用 `User=root`，会覆盖已有服务文件中的 `User` 设置**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root
-```
-
-**安装并升级 Xray-core，但不包含地理数据**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --without-geodata
-```
-
-**移除 Xray，包括 json 配置文件和日志**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
-```
-
-## 更多用法
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ help
-```
-
-## 星标趋势图
-
-[![星标趋势图](https://starchart.cc/XTLS/Xray-install.svg)](https://starchart.cc/XTLS/Xray-install)

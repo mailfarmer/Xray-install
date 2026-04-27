@@ -2,95 +2,53 @@
 
 English | [简体中文](README_zh-Hans.md) | [繁體中文](README_zh-Hant.md)
 
-Bash script for installing Xray in operating systems such as CentOS / Debian / OpenSUSE that support systemd.
+A minimal Bash installer for Xray on Linux systems using systemd.
 
-**For Alpine or Gentoo Linux users**, please refer to **[OpenRC Specific Instructions](alpinelinux/README.md)** for installation scripts and guides tailored for Alpine/Gentoo Linux featured by OpenRC init-system.
+This fork keeps only two actions:
 
----
+- `install`
+- `uninstall`
 
-#### [Filesystem Hierarchy Standard (FHS)](https://en.wikipedia.org/wiki/Filesystem_Hierarchy_Standard)
+It installs Xray as a dedicated `xray:xray` system user, starts Xray with `-confdir`, and downloads `geoip.dat` / `geosite.dat` from `Loyalsoldier/v2ray-rules-dat`.
 
-```
-installed: /etc/systemd/system/xray.service
-installed: /etc/systemd/system/xray@.service
+## Installed Paths
 
-installed: /usr/local/bin/xray
-installed: /usr/local/etc/xray/*.json
-
-installed: /usr/local/share/xray/geoip.dat
-installed: /usr/local/share/xray/geosite.dat
-
-installed: /var/log/xray/access.log
-installed: /var/log/xray/error.log
-```
-
-Notice: Xray will NOT log to `/var/log/xray/*.log` by default. Configure `"log"` to specify log files.
-
-## Basic Usage
-
-**Install & Upgrade Xray-core and geodata with `User=nobody`, but will NOT overwrite `User` in existing service files**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install
+```text
+/etc/systemd/system/xray.service
+/usr/local/bin/xray
+/usr/local/etc/xray/*.json
+/usr/local/share/xray/geoip.dat
+/usr/local/share/xray/geosite.dat
+/var/log/xray/access.log
+/var/log/xray/error.log
 ```
 
-**Update geoip.dat and geosite.dat only**
+## Behavior
 
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install-geodata
-```
+- The service runs as `xray:xray`
+- The service starts with `xray run -confdir /usr/local/etc/xray`
+- If `/usr/local/etc/xray` contains no `.json` file, the installer creates `00-default.json`
+- `geoip.dat` and `geosite.dat` are downloaded from:
+  - `https://github.com/Loyalsoldier/v2ray-rules-dat`
+- Downloaded geodata is verified with upstream `.sha256sum`
+- Permissions are tightened for config and log files
 
-**Remove Xray, except json and logs**
+## Usage
 
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove
-```
+Install:
 
-## Advance
-
-**Install & Upgrade Xray-core to a pre-release version**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --beta
+```bash
+sudo ./install-release.sh install
 ```
 
-**Install & Upgrade Xray-core and geodata with `logrotate`, `$time` can be in the format of 12:34:56**
+Uninstall:
 
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --logrotate $time
-```
-
-```
-installed: /etc/systemd/system/logrotate@.service
-installed: /etc/systemd/system/logrotate@.timer
-
-installed: /etc/logrotate.d/xray
+```bash
+sudo ./install-release.sh uninstall
 ```
 
-**Install & Upgrade Xray-core and geodata with `User=root`, which will overwrite `User` in existing service files**
+Help:
 
+```bash
+./install-release.sh --help
 ```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install -u root
-```
-
-**Install & Upgrade Xray-core without geodata**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --without-geodata
-```
-
-**Remove Xray, include json and logs**
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ remove --purge
-```
-
-## More Usage
-
-```
-bash -c "$(curl -L https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ help
-```
-
-## Stargazers over time
-
-[![Stargazers over time](https://starchart.cc/XTLS/Xray-install.svg)](https://starchart.cc/XTLS/Xray-install)
